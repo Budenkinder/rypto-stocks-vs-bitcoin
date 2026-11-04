@@ -1,0 +1,230 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="description" content="Fourteen crypto stocks measured against Bitcoin, with category indexes and trends.">
+<style>:root{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}*,*::before,*::after{box-sizing:border-box}body{margin:0;-webkit-text-size-adjust:100%}[hidden]{display:none!important}</style>
+<title>Crypto Stocks vs Bitcoin</title>
+<style>
+/* Layout: Bitcoin as the reference strip, two group indexes side by side, a scoreboard, then small multiples per stock grouped by category. */
+:root{
+  --bg:#f6f7f9; --surface:#fcfcfd; --ink:#0c0e12; --ink2:#4b505a; --muted:#858a94;
+  --grid:#e2e5ea; --axis:#c2c7d0; --line:#d9dde4;
+  --s1:#2a78d6; --s2:#eb6834; --s3:#1baf7a;
+  --display:ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+  --body:ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+  --mono:ui-monospace,"SF Mono",Menlo,Consolas,"Liberation Mono",monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0d0e11; --surface:#17191d; --ink:#ffffff; --ink2:#c1c5cd; --muted:#858a94;
+  --grid:#272a30; --axis:#3a3e46; --line:#2a2d33;
+  --s1:#3987e5; --s2:#d95926; --s3:#199e70; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0d0e11; --surface:#17191d; --ink:#ffffff; --ink2:#c1c5cd; --muted:#858a94;
+  --grid:#272a30; --axis:#3a3e46; --line:#2a2d33;
+  --s1:#3987e5; --s2:#d95926; --s3:#199e70; color-scheme:dark}
+
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:15px;line-height:1.5}
+.wrap{max-width:1120px;margin:0 auto;padding-inline:20px;padding-block:36px 56px;display:flex;flex-direction:column;gap:38px}
+header{display:flex;flex-direction:column;gap:8px}
+.eyebrow{font-family:var(--mono);font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+h1{font-family:var(--display);font-stretch:118%;font-weight:750;font-size:clamp(28px,5vw,42px);line-height:1.05;letter-spacing:-.02em;margin:0;text-wrap:balance}
+.lede{color:var(--ink2);max-width:66ch;margin:0}
+h2{font-family:var(--display);font-stretch:112%;font-weight:700;font-size:19px;letter-spacing:-.01em;margin:0;text-wrap:balance}
+h3{font-family:var(--mono);font-weight:500;font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink2);margin:8px 0 0;display:flex;align-items:center;gap:8px}
+.sub{color:var(--ink2);font-size:14px;margin:0;max-width:72ch}
+section{display:flex;flex-direction:column;gap:14px}
+.sechead{display:flex;flex-direction:column;gap:4px}
+a.mlink{color:var(--s1);text-decoration:underline;text-underline-offset:2px;font-weight:600;white-space:nowrap}
+a.mlink:focus-visible{outline:2px solid var(--s1);outline-offset:2px;border-radius:2px}
+#method{scroll-margin-top:calc(env(safe-area-inset-top,0px) + 16px)}
+.steps{list-style:none;counter-reset:st;margin:0;padding:0;display:flex;flex-direction:column;gap:14px;max-width:78ch}
+.steps li{counter-increment:st;display:grid;grid-template-columns:28px minmax(0,1fr);gap:4px 12px}
+.steps li::before{content:counter(st);grid-row:1/3;font-family:var(--mono);font-size:12px;font-weight:500;width:24px;height:24px;border:1px solid var(--axis);border-radius:50%;display:flex;align-items:center;justify-content:center;color:var(--ink2)}
+.steps b{font-weight:650}
+.steps p{margin:0;color:var(--ink2);font-size:14px}
+.calc{grid-column:2;min-width:0;font-family:var(--mono);font-size:12.5px;color:var(--ink);background:var(--surface);border:1px solid var(--line);border-radius:5px;padding:8px 10px;margin-top:6px;overflow-x:auto;white-space:pre;font-variant-numeric:tabular-nums}
+.headrow{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:flex-end;gap:12px}
+
+.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+.grid3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
+@media (max-width:980px){.grid3{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:720px){.grid,.grid3{grid-template-columns:minmax(0,1fr)}}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:6px;padding:16px 16px 12px;display:flex;flex-direction:column;gap:10px;min-width:0}
+.ptop{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
+.pname{display:flex;flex-direction:column;gap:2px;min-width:0}
+.tick{display:flex;align-items:center;gap:8px;font-family:var(--mono);font-size:12px;letter-spacing:.06em;color:var(--ink2)}
+.sw{width:14px;height:3px;border-radius:2px;flex:none}
+.dash{width:18px;height:0;border-top:2px dashed var(--ink2);flex:none}
+.cname{font-weight:650;font-size:16px}
+.read{text-align:right;flex:none}
+.price{font-family:var(--mono);font-weight:500;font-size:20px;font-variant-numeric:tabular-nums;line-height:1.2}
+.when{font-family:var(--mono);font-size:11px;color:var(--muted);white-space:pre-line}
+.stats{display:flex;flex-wrap:wrap;gap:4px 18px;font-family:var(--mono);font-size:12px;color:var(--ink2);font-variant-numeric:tabular-nums;border-top:1px solid var(--line);padding-top:10px}
+.stats b{font-weight:500;color:var(--ink)}
+.small .cname{font-size:15px} .small .price{font-size:17px} .small{padding:14px 14px 10px}
+.small .ptop{flex-direction:column;gap:6px} .small .read{text-align:left;display:flex;flex-wrap:wrap;align-items:baseline;gap:2px 10px} .small .when{text-align:left}
+.panel{position:relative}
+.vel{position:absolute;top:14px;right:14px;display:flex;flex-direction:column;align-items:flex-end;gap:1px;font-family:var(--mono);font-variant-numeric:tabular-nums}
+.vel .vlab{font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.vel .vval{font-size:14px;font-weight:500;color:var(--ink)}
+.chart{position:relative;width:100%;touch-action:pan-y}
+.chart svg{display:block;width:100%;overflow:visible}
+svg text{font-family:var(--mono);font-size:11px;fill:var(--muted);font-variant-numeric:tabular-nums}
+svg text.lab{fill:var(--ink2)}
+.gl{stroke:var(--grid);stroke-width:1} .ax{stroke:var(--axis);stroke-width:1}
+.ch{stroke:var(--axis);stroke-width:1}
+.note{stroke:var(--axis);stroke-width:1;stroke-dasharray:2 3}
+.legend{display:flex;flex-wrap:wrap;gap:6px 18px;font-size:13px;color:var(--ink2)}
+.legend span{display:inline-flex;align-items:center;gap:7px}
+
+.seg{display:inline-flex;border:1px solid var(--axis);border-radius:6px;overflow:hidden;flex:none}
+.seg button{font:inherit;font-size:13px;font-weight:600;padding:7px 14px;background:transparent;color:var(--ink2);border:0;cursor:pointer}
+.seg button+button{border-left:1px solid var(--axis)}
+.seg button[aria-pressed="true"]{background:var(--ink);color:var(--bg)}
+.seg button:focus-visible,summary:focus-visible{outline:2px solid var(--s1);outline-offset:2px}
+
+.tscroll{overflow:auto;border:1px solid var(--line);border-radius:6px;background:var(--surface)}
+table{border-collapse:collapse;width:100%;font-family:var(--mono);font-size:12px;font-variant-numeric:tabular-nums}
+th,td{padding:7px 12px;text-align:right;white-space:nowrap;border-bottom:1px solid var(--line)}
+th:first-child,td:first-child{text-align:left}
+th{position:sticky;top:0;background:var(--surface);color:var(--ink2);font-weight:500}
+td.na{color:var(--muted)}
+#score td:first-child{font-family:var(--body);font-size:14px;font-weight:600}
+#score td:first-child small{font-family:var(--mono);font-size:11px;font-weight:400;color:var(--muted);margin-left:8px;letter-spacing:.04em}
+#score tr.grp td{font-family:var(--mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink2);background:var(--bg);font-weight:500}
+#score tr.grp td span{display:inline-flex;align-items:center;gap:8px}
+#score tr.idx td{font-weight:500;color:var(--ink)}
+#score tr:last-child td{border-bottom:0}
+.pill{display:inline-block;border:1px solid var(--axis);border-radius:999px;padding:1px 9px;color:var(--ink)}
+details{border-top:1px solid var(--line);padding-top:14px}
+summary{cursor:pointer;font-weight:600;font-size:14px}
+details .tscroll{max-height:420px;margin-top:12px}
+footer{font-size:13px;color:var(--ink2);max-width:78ch;display:flex;flex-direction:column;gap:6px}
+footer p{margin:0}
+.legal{border-top:1px solid var(--line);padding-top:14px;display:flex;flex-direction:column;gap:8px}
+.legal h2{font-size:15px}
+.legal strong{color:var(--ink);font-weight:600}
+.refresh{display:flex;flex-wrap:wrap;align-items:center;gap:8px 14px;font-family:var(--mono);font-size:12px;color:var(--ink2)}
+.refresh button{font:inherit;font-family:var(--body);font-size:13px;font-weight:600;padding:6px 14px;border-radius:6px;border:1px solid var(--axis);background:var(--ink);color:var(--bg);cursor:pointer}
+.refresh button:disabled{background:transparent;color:var(--muted);cursor:default}
+.refresh button:focus-visible{outline:2px solid var(--s1);outline-offset:2px}
+#refresh-msg{font-family:var(--body);font-size:13px}
+#sens td:first-child{font-family:var(--body);font-size:14px;font-weight:600}
+#sens td:first-child small{font-family:var(--mono);font-size:11px;font-weight:400;color:var(--muted);margin-left:8px;letter-spacing:.04em}
+#sens tr.grp td{font-family:var(--mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink2);background:var(--bg);font-weight:500}
+#sens tr.grp td span{display:inline-flex;align-items:center;gap:8px}
+#sens tr:last-child td{border-bottom:0}
+#sens th.l,#sens td.l{text-align:left}
+.muted{color:var(--muted)}
+.sbar{position:relative;width:220px;height:20px}
+.sbar span{position:absolute}
+.sbar .zero{left:50%;top:-2px;width:1px;height:24px;background:var(--axis)}
+.sbar .seg{height:8px;border-radius:2px}
+.sbar .btick{width:2px;height:12px;margin-left:-1px;background:var(--ink);border-radius:1px}
+.skey{display:inline-block;width:2px;height:12px;background:var(--ink);vertical-align:-2px;margin-right:2px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="eyebrow">Weekly closes · from Oct 2024 · USD</div>
+    <h1>Crypto Stocks vs Bitcoin</h1>
+    <p class="lede">Fourteen listed crypto stocks measured against Bitcoin over two years, in two categories: companies that run a crypto business, and treasury companies that mainly hold Bitcoin. Most listed during the period, so their lines start at their first trading week. <a class="mlink" href="#method">How the index works</a></p>
+    <div class="refresh"><span id="asof">Prices as of 16 Oct 2026</span><button type="button" id="refresh">Refresh prices</button><span id="refresh-msg" aria-live="polite"></span></div>
+  </header>
+
+  <section>
+    <div class="sechead">
+      <h2>Bitcoin, the yardstick</h2>
+      <p class="sub">Hover or drag across any chart on the page to read every panel for the same week.</p>
+    </div>
+    <div id="btc"></div>
+  </section>
+
+  <section>
+    <div class="sechead">
+      <h2>Both categories priced in Bitcoin</h2>
+      <p class="sub">Each stock's price divided by the Bitcoin price, averaged with equal weight into one index per category and started at 100. A rising line means the category is beating Bitcoin. The dashed line is the 13-week average, which shows the tendency behind the weekly swings. <a class="mlink" href="#method">How the index works</a></p>
+    </div>
+    <div class="legend"><span><span class="sw" style="background:var(--ink2)"></span>Weekly index</span><span><span class="dash"></span>13-week average</span></div>
+    <div class="grid" id="groups"></div>
+  </section>
+
+  <section>
+    <div class="sechead">
+      <h2>Scoreboard</h2>
+      <p class="sub">Within each category, sorted by velocity: how fast each stock gained on or fell behind Bitcoin per week over the last 13 weeks, the one window every stock shares. "Since start" runs from October 2024 or the stock's first trading week, so those figures are not comparable across stocks with different start dates. <a class="mlink" href="#method">How the trend is decided</a></p>
+    </div>
+    <div class="tscroll"><table id="score"></table></div>
+  </section>
+
+  <section id="sensitivity">
+    <div class="sechead">
+      <h2>Bitcoin sensitivity</h2>
+      <p class="sub">How each stock moved in four-week periods when Bitcoin rose and when it fell, since its first week on the page. The upper bar shows the stock's average move when Bitcoin rose, the lower, lighter bar when Bitcoin fell. The black ticks mark Bitcoin's own average move in the same periods, so a bar reaching past its tick means the stock moved more than Bitcoin, and a bar pointing the other way means it moved against Bitcoin. This describes the past and is not a forecast.</p>
+    </div>
+    <div class="legend"><span><span class="skey"></span>Bitcoin's average move</span><span id="sens-scale"></span><span>* fewer than 40 periods: less reliable</span></div>
+    <div class="tscroll"><table id="sens"></table></div>
+    <p class="sub"><b>Follows Bitcoin</b> is the correlation of four-week moves: closely from 0.6, moderately from 0.4, loosely below. <b>Sensitivity</b> is the typical move per 1% Bitcoin move: 1.5× means about 15% when Bitcoin moves 10%. Four-week periods overlap week by week, so neighbouring periods share most of their data.</p>
+  </section>
+
+  <section>
+    <div class="headrow">
+      <div class="sechead">
+        <h2>Every stock</h2>
+        <p class="sub" id="modehint"></p>
+        <div class="legend" id="smlegend"><span><span class="sw" style="background:var(--s2)"></span><span class="sw" style="background:var(--s3)"></span>Stock</span><span><span class="sw" style="background:var(--s1)"></span>Bitcoin</span><span>both start at 100</span></div>
+      </div>
+      <div class="seg" role="group" aria-label="Measure">
+        <button type="button" id="mode-rel" aria-pressed="true">Versus Bitcoin</button>
+        <button type="button" id="mode-usd" aria-pressed="false">Price in USD</button>
+      </div>
+    </div>
+    <h3><span class="sw" style="background:var(--s2)"></span><span id="h-co"></span></h3>
+    <div class="grid3" id="sm-co"></div>
+    <h3><span class="sw" style="background:var(--s3)"></span><span id="h-tr"></span></h3>
+    <div class="grid3" id="sm-tr"></div>
+  </section>
+
+  <section id="method">
+    <div class="sechead">
+      <h2>How the index works</h2>
+      <p class="sub">The index answers one question: did owning these stocks do better or worse than simply owning Bitcoin? It is built in five steps, applied every week.</p>
+    </div>
+    <ol class="steps">
+      <li><b>Price each stock in Bitcoin</b><p>Divide the stock's weekly close by Bitcoin's weekly close. The result is how much Bitcoin one share costs. If the stock rises faster than Bitcoin this ratio goes up; if Bitcoin rises faster it goes down, even when the stock gained in dollars.</p>
+        <div class="calc">Stock  $100 → $110   (+10%)
+Bitcoin $80,000 → $96,000   (+20%)
+Ratio   1.10 ÷ 1.20 = 0.917   → the stock lost 8.3% against Bitcoin</div></li>
+      <li><b>Start at 100</b><p>Each stock's ratio is rebased to 100 at its first week on the page, so a reading of 80 means 20% behind Bitcoin since then and 130 means 30% ahead. The per-stock charts show the same comparison as two lines: the price change of the stock and of Bitcoin since the stock's first week. Their headline number is the gap: a stock at −24% next to Bitcoin at −22% shows −1.9%, meaning about 2% behind Bitcoin.</p></li>
+      <li><b>Combine a category with equal weight</b><p>Each week the category index moves by the average weekly change in its members' ratios. Every stock counts the same, so the smallest company moves the index as much as the largest. The crypto-companies index starts at 100 on 11 Oct 2024 with the four stocks listed then; the treasury index starts with Strategy alone.</p>
+        <div class="calc">Week change: stock A +4%, stock B −2%   → index moves (4 − 2) ÷ 2 = +1%</div></li>
+      <li><b>Let new listings join without a jump</b><p>A stock that lists later enters the average from its second week on the page. Because only weekly changes are averaged, its arrival does not shift the index level.</p></li>
+      <li><b>Measure the velocity and read the trend</b><p>Velocity is how fast a stock is currently pulling away from Bitcoin or falling behind it, in percent per week. It is the slope of a straight line fitted through the last 13 weekly values of the stock-to-Bitcoin ratio, so a single unusual week moves it less than comparing just the first and last week. The trend label follows from it: <b>gaining</b> above +0.5% per week, <b>losing ground</b> below −0.5% per week, and <b>mixed</b> in between. On the two category charts, the dashed line is the 13-week average of the index, shown for orientation. All of this describes the last quarter, not the future.</p>
+        <div class="calc">Velocity −0.8%/wk  → about 10% further behind Bitcoin over a quarter (13 weeks)</div></li>
+    </ol>
+  </section>
+
+  <details>
+    <summary>Weekly data table</summary>
+    <div class="tscroll"><table id="tbl"></table></div>
+  </details>
+
+  <footer>
+    <p>Stocks are weekly closes (Friday, or the last session of the week) from Yahoo Finance, with Stooq as a fallback. Bitcoin is the weekly XBT/USD close on Kraken, where the week runs Thursday to Wednesday, so it sits one to two days off the stock closes. <span id="asof-foot">The last stock point is the week to 16 Oct 2026; the last Bitcoin point is a partial week as quoted on 17 Oct 2026.</span> "Refresh prices" loads the newest data at most once a day; the current week is shown as it stands at the last trade.</p>
+    <p>Start dates: Coincheck and Twenty One Capital are shown from the week their mergers closed (December 2024 and December 2025); the earlier history of the shell companies they merged into is left out. BitGo starts with its first full trading week, which misses its first two sessions. Exodus traded over the counter before moving to NYSE American in December 2024. Galaxy Digital is shown from its Nasdaq listing in May 2025; besides trading and asset management it also develops data centres.</p>
+  </footer>
+
+  <footer class="legal" id="legal">
+    <p><strong>No investment advice.</strong> This page shows past price performance only. It is not investment advice and not a recommendation to buy, hold or sell any security or crypto asset. The labels "gaining", "losing ground" and "mixed" come from a fixed rule applied to past prices (see <a class="mlink" href="#method">How the index works</a>); they are not forecasts. Prices may contain errors or delays. Past performance does not predict future results.</p>
+    <p><strong>Author and holdings.</strong> Author: Resul Kocyigit. The author holds positions in some of the assets shown on this page. This is disclosed as a possible conflict of interest; the page gives no advice or recommendation, and all figures follow mechanically from public prices.</p>
+    <h2 id="privacy">Privacy</h2>
+    <p>This page sets no cookies, uses no analytics or tracking and loads no resources from third parties. The hosting provider, Vercel Inc., processes technical access data such as IP addresses in its server logs in order to deliver the page.</p>
+  </footer>
+</div>
+
+<script src="/app.js"></script>
+</body>
+</html>
