@@ -305,12 +305,14 @@ function show(d){
   document.getElementById("asof-foot").textContent="The last stock point is the week to "+longDate(d.end.stock)+"; the last Bitcoin point is a partial week as quoted on "+longDate(d.end.btc)+".";
 }
 const btn=document.getElementById("refresh"), msg=document.getElementById("refresh-msg");
-function syncBtn(){const s=store(),done=!!(s&&s.day===berlinDay());btn.disabled=done;btn.textContent=done?"Updated today":"Refresh prices";}
+/* today's prices are loaded and include every stock; otherwise the page asks again (the answer is cached, so this stays cheap) */
+const doneToday=s=>!!(s&&s.day===berlinDay()&&s.data&&META.every(([id])=>merge(s.data).stocks[id]));
+function syncBtn(){const s=store(),done=doneToday(s);btn.disabled=done;btn.textContent=done?"Updated today":"Refresh prices";}
 let shown=EMBED;
 (function(){const s=store();if(s&&s.data){const m=merge(s.data);if(m.end.stock>=EMBED.end.stock)shown=m;}})();
 show(shown); syncBtn();
 async function refresh(auto){
-  const today=berlinDay(); const s=store(); if(s&&s.day===today)return;
+  const today=berlinDay(); if(doneToday(store()))return;
   btn.disabled=true; btn.textContent="Loading prices…"; msg.textContent="";
   try{
     const r=await fetch("/api/prices?day="+today,{headers:{Accept:"application/json"}});

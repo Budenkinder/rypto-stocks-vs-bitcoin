@@ -1,6 +1,7 @@
 // Weekly closes for the page, fetched at most once per day.
 // The response is cached by Vercel's CDN for the day (s-maxage), keyed by ?day=YYYY-MM-DD (Berlin date),
-// so only the first request of a day reaches Yahoo Finance, Stooq and Kraken.
+// so only the first request of a day reaches Yahoo Finance, Nasdaq, Stooq and Kraken.
+// Sources are tried in that order; Nasdaq's historical-prices data covers US listings when Yahoo refuses.
 
 // id: key used by the page · yahoo/stooq: source symbols · start: Monday of the first week shown · fx: convert to USD
 const TICKERS = [
@@ -29,10 +30,23 @@ const berlinDay = () => new Intl.DateTimeFormat("en-CA", { timeZone: "Europe/Ber
 const iso = ms => new Date(ms).toISOString().slice(0, 10);
 const monday = ms => { const d = new Date(ms); return Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate() - (d.getUTCDay() + 6) % 7); };
 
-async function get(url, type) {
-  const r = await fetch(url, { headers: UA, signal: AbortSignal.timeout(8000) });
-  if (!r.ok) throw new Error("HTTP " + r.status);
-  return type === "text" ? r.text() : r.json();
+const BROWSER = { "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Safari/537.36", "Accept": "application/json, text/plain, */*" };
+const wait = ms => new Promise(r => setTimeout(r, ms));
+
+// one retry on rate limiting (429) or a server error
+async function get(url, type, headers = UA) {
+  for (let i = 0; ; i++) {
+    const r = await fetch(url, { headers, signal: AbortSignal.timeout(8000) });
+    if (r.ok) return type === "text" ? r.text() : r.json();
+    if (i === 0 && (r.status === 429 || r.status >= 500)) { await wait(1500); continue; }
+    throw new Error("HTTP " + r.status);
+  }
+}
+
+// run fn over items, at most n at a time, so the sources do not see a burst of parallel requests
+async function pool(items, n, fn) {
+  let next = 0;
+  await Promise.all(Array.from({ length: Math.min(n, items.length) }, async () => { while (next < items.length) await fn(items[next++]); }));
 }
 
 // rows are [local-time ms, close]; Yahoo stamps weekly bars in exchange time, so shift by the exchange offset
@@ -56,7 +70,19 @@ async function stooq(sym) {
   return { rows, last: rows[rows.length - 1][0] };
 }
 
-const byWeek = rows => { const m = new Map(); rows.forEach(([ms, v]) => m.set(monday(ms), v)); return m; };
+// daily closes from Nasdaq's historical-prices data; byWeek keeps the last trading day of each week
+async function nasdaq(sym) {
+  const from = new Date(FROM * 1000).toISOString().slice(0, 10), to = new Date().toISOString().slice(0, 10);
+  const j = await get(`https://api.nasdaq.com/api/quote/${encodeURIComponent(sym)}/historical?assetclass=stocks&fromdate=${from}&todate=${to}&limit=9999`, "json", BROWSER);
+  const t = j && j.data && j.data.tradesTable && j.data.tradesTable.rows;
+  if (!Array.isArray(t) || !t.length) throw new Error("no data");
+  const rows = t.map(x => { const [m, d, y] = String(x.date).split("/").map(Number); return [Date.UTC(y, m - 1, d), parseFloat(String(x.close).replace(/[$,]/g, ""))]; })
+    .filter(([ms, v]) => Number.isFinite(ms) && v > 0).sort((a, b) => a[0] - b[0]);
+  if (!rows.length) throw new Error("no data");
+  return { rows, last: rows[rows.length - 1][0] + 16 * 3600e3 };
+}
+
+const byWeek = rows => { const m = new Map(); [...rows].sort((a, b) => a[0] - b[0]).forEach(([ms, v]) => m.set(monday(ms), v)); return m; };
 
 // one value per week (keyed by Monday), starting exactly at the page's start week, no gaps
 function weekly(m, start) {
@@ -111,21 +137,29 @@ module.exports = async (req, res) => {
     if (r) fx[cur] = byWeek(r.rows);
   }));
   let stockEnd = 0;
-  await Promise.all(TICKERS.map(async t => {
-    const r = await series(t.id, [["yahoo", yahoo, t.yahoo], ["stooq", stooq, t.stooq]], out.errors);
-    if (!r) return;
-    try {
-      let m = byWeek(r.rows);
-      if (t.fx) { if (!fx[t.fx]) throw new Error("no " + t.fx + " rate"); m = toUSD(m, fx[t.fx]); }
-      out.stocks[t.id] = weekly(m, t.start);
-      if (!t.fx) stockEnd = Math.max(stockEnd, r.last);
-    } catch (e) { out.errors.push(`${t.id}: ${e.message}`); }
-  }));
+  await pool(TICKERS, 4, async t => {
+    const src = [["yahoo", yahoo, t.yahoo]];
+    if (!t.fx) src.push(["nasdaq", nasdaq, t.id]);
+    src.push(["stooq", stooq, t.stooq]);
+    // a source counts only if its history converts into a complete weekly series; otherwise try the next one
+    for (const [name, fn, sym] of src) {
+      try {
+        const r = await fn(sym);
+        let m = byWeek(r.rows);
+        if (t.fx) { if (!fx[t.fx]) throw new Error("no " + t.fx + " rate"); m = toUSD(m, fx[t.fx]); }
+        out.stocks[t.id] = weekly(m, t.start);
+        if (!t.fx) stockEnd = Math.max(stockEnd, r.last);
+        return;
+      } catch (e) { out.errors.push(`${t.id} (${name}): ${e.message}`); }
+    }
+  });
   try { out.btc = await kraken(); out.btcEnd = today; } catch (e) { out.errors.push("BTC (kraken): " + e.message); }
   out.stockEnd = stockEnd ? iso(stockEnd) : null;
   const ok = Object.keys(out.stocks).length > 0 || !!out.btc;
   res.statusCode = ok ? 200 : 502;
   res.setHeader("Content-Type", "application/json; charset=utf-8");
-  res.setHeader("Cache-Control", ok ? "public, max-age=0, s-maxage=86400" : "public, max-age=0, s-maxage=600"); // failures are cached briefly so repeated requests cannot hammer the sources
+  const missing = TICKERS.some(t => !out.stocks[t.id]) || !out.btc;
+  // complete data is kept for the day; partial data only for an hour, so a missing stock is retried soon
+  res.setHeader("Cache-Control", !ok ? "public, max-age=0, s-maxage=600" : missing ? "public, max-age=0, s-maxage=3600" : "public, max-age=0, s-maxage=86400"); // failures are cached briefly so repeated requests cannot hammer the sources
   res.end(JSON.stringify(out));
 };
