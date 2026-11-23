@@ -7,7 +7,7 @@
 <style>:root{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}*,*::before,*::after{box-sizing:border-box}body{margin:0;-webkit-text-size-adjust:100%}[hidden]{display:none!important}</style>
 <title>Crypto Stocks vs Bitcoin</title>
 <style>
-/* Layout: Bitcoin as the reference strip, two group indexes side by side, a scoreboard, then small multiples per stock grouped by category. */
+/* Layout: Bitcoin as the reference strip, two group indexes side by side, Bitcoin sensitivity, then small multiples per stock grouped by category. */
 :root{
   --bg:#f6f7f9; --surface:#fcfcfd; --ink:#0c0e12; --ink2:#4b505a; --muted:#858a94;
   --grid:#e2e5ea; --axis:#c2c7d0; --line:#d9dde4;
@@ -91,13 +91,6 @@ th,td{padding:7px 12px;text-align:right;white-space:nowrap;border-bottom:1px sol
 th:first-child,td:first-child{text-align:left}
 th{position:sticky;top:0;background:var(--surface);color:var(--ink2);font-weight:500}
 td.na{color:var(--muted)}
-#score td:first-child{font-family:var(--body);font-size:14px;font-weight:600}
-#score td:first-child small{font-family:var(--mono);font-size:11px;font-weight:400;color:var(--muted);margin-left:8px;letter-spacing:.04em}
-#score tr.grp td{font-family:var(--mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink2);background:var(--bg);font-weight:500}
-#score tr.grp td span{display:inline-flex;align-items:center;gap:8px}
-#score tr.idx td{font-weight:500;color:var(--ink)}
-#score tr:last-child td{border-bottom:0}
-.pill{display:inline-block;border:1px solid var(--axis);border-radius:999px;padding:1px 9px;color:var(--ink)}
 details{border-top:1px solid var(--line);padding-top:14px}
 summary{cursor:pointer;font-weight:600;font-size:14px}
 details .tscroll{max-height:420px;margin-top:12px}
@@ -150,14 +143,6 @@ footer p{margin:0}
     </div>
     <div class="legend"><span><span class="sw" style="background:var(--ink2)"></span>Weekly index</span><span><span class="dash"></span>13-week average</span></div>
     <div class="grid" id="groups"></div>
-  </section>
-
-  <section>
-    <div class="sechead">
-      <h2>Scoreboard</h2>
-      <p class="sub">Within each category, sorted by velocity: how fast each stock gained on or fell behind Bitcoin per week over the last 13 weeks, the one window every stock shares. "Since start" runs from October 2024 or the stock's first trading week, so those figures are not comparable across stocks with different start dates. <a class="mlink" href="#method">How the trend is decided</a></p>
-    </div>
-    <div class="tscroll"><table id="score"></table></div>
   </section>
 
   <section id="sensitivity">
