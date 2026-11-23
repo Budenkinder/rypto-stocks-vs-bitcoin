@@ -13,7 +13,6 @@ const TICKERS = [
   { id: "FIGR", yahoo: "FIGR", stooq: "figr.us", start: "2025-09-08" },
   { id: "GEMI", yahoo: "GEMI", stooq: "gemi.us", start: "2025-09-08" },
   { id: "BTGO", yahoo: "BTGO", stooq: "btgo.us", start: "2026-01-26" },
-  { id: "BKKT", yahoo: "BKKT", stooq: "bkkt.us", start: "2024-10-07" },
   { id: "MSTR", yahoo: "MSTR", stooq: "mstr.us", start: "2024-10-07" },
   { id: "XXI",  yahoo: "XXI",  stooq: "xxi.us",  start: "2025-12-08" },
   { id: "BMNR", yahoo: "BMNR", stooq: "bmnr.us", start: "2025-06-30" },   // Ethereum treasury since 30 Jun 2025
