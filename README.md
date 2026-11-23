@@ -19,7 +19,7 @@ It describes past prices only and is not investment advice.
 |---|---|
 | `index.html` | Page markup and styles |
 | `app.js` | Built-in price data (`DATA0`, `BTC0`), all calculations and charts, and the daily price loading |
-| `api/prices.js` | Vercel serverless function: fetches weekly closes from Yahoo Finance (Stooq as fallback), USD/JPY for Metaplanet, and Bitcoin from Kraken |
+| `api/prices.js` | Vercel serverless function: fetches weekly closes from Yahoo Finance (Nasdaq and Stooq as fallbacks), USD/JPY for Metaplanet, and Bitcoin from Kraken |
 | `vercel.json` | Security headers (Content Security Policy etc.) |
 
 No build step and no npm dependencies. Plain HTML, JavaScript and one Node function (Node 18 or newer, uses the built-in `fetch`).
@@ -59,8 +59,8 @@ The refresh fetches new prices at runtime, but the history bundled in `app.js` s
 - Twenty One Capital starts at the week its merger closed, BitMine Immersion at its Ether treasury announcement (30 Jun 2025), Cypherpunk Technologies at its Zcash treasury announcement (12 Nov 2025); BitGo at its first full trading week.
 - Metaplanet (Tokyo, 3350) is converted from yen to US dollars with the weekly USD/JPY close.
 - BitMine, Metaplanet and Cypherpunk have no built-in history in `app.js`; they come from `/api/prices`, which the page loads automatically once a day.
-- Yahoo Finance has no official API and may rate-limit requests; the function then tries Stooq.
+- Yahoo Finance has no official API and may rate-limit requests; the function retries once, then tries Nasdaq's historical prices (US listings) and Stooq. Data that is still incomplete is cached for one hour instead of a day.
 
 ## License
 
-Apache License 2.0, see [LICENSE](LICENSE). The price data comes from Yahoo Finance, Stooq and Kraken and is subject to their terms.
+Apache License 2.0, see [LICENSE](LICENSE). The price data comes from Yahoo Finance, Nasdaq, Stooq and Kraken and is subject to their terms.
