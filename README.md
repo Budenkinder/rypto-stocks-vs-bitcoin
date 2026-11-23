@@ -1,6 +1,6 @@
 # (Vibecoded) Crypto Stocks vs Bitcoin
 
-Fifteen listed crypto stocks measured against Bitcoin since October 2024, in two categories: crypto companies (Coinbase, Robinhood, Circle, Galaxy Digital, Bullish, eToro, Figure, Gemini, BitGo, Bakkt) and treasury companies holding Bitcoin, Ether or Zcash (Strategy, Metaplanet, BitMine Immersion, Twenty One Capital, Cypherpunk Technologies).
+Fourteen listed crypto stocks measured against Bitcoin since October 2024, in two categories: crypto companies (Coinbase, Robinhood, Circle, Galaxy Digital, Bullish, eToro, Figure, Gemini, BitGo) and treasury companies holding Bitcoin, Ether or Zcash (Strategy, Metaplanet, BitMine Immersion, Twenty One Capital, Cypherpunk Technologies).
 
 Live: https://crypto-stocks-vs-bitcoin.vercel.app
 
