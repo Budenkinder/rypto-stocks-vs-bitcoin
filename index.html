@@ -3,11 +3,11 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="description" content="Fourteen crypto stocks measured against Bitcoin, with category indexes and trends.">
+<meta name="description" content="Fifteen crypto stocks measured against Bitcoin, with category indexes and trends.">
 <style>:root{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}*,*::before,*::after{box-sizing:border-box}body{margin:0;-webkit-text-size-adjust:100%}[hidden]{display:none!important}</style>
 <title>Crypto Stocks vs Bitcoin</title>
 <style>
-/* Layout: Bitcoin as the reference strip, two group indexes side by side, Bitcoin sensitivity, then small multiples per stock grouped by category. */
+/* Layout: Bitcoin as the reference strip, two group indexes side by side, then small multiples per stock grouped by category. */
 :root{
   --bg:#f6f7f9; --surface:#fcfcfd; --ink:#0c0e12; --ink2:#4b505a; --muted:#858a94;
   --grid:#e2e5ea; --axis:#c2c7d0; --line:#d9dde4;
@@ -103,20 +103,7 @@ footer p{margin:0}
 .refresh button{font:inherit;font-family:var(--body);font-size:13px;font-weight:600;padding:6px 14px;border-radius:6px;border:1px solid var(--axis);background:var(--ink);color:var(--bg);cursor:pointer}
 .refresh button:disabled{background:transparent;color:var(--muted);cursor:default}
 .refresh button:focus-visible{outline:2px solid var(--s1);outline-offset:2px}
-#refresh-msg{font-family:var(--body);font-size:13px}
-#sens td:first-child{font-family:var(--body);font-size:14px;font-weight:600}
-#sens td:first-child small{font-family:var(--mono);font-size:11px;font-weight:400;color:var(--muted);margin-left:8px;letter-spacing:.04em}
-#sens tr.grp td{font-family:var(--mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink2);background:var(--bg);font-weight:500}
-#sens tr.grp td span{display:inline-flex;align-items:center;gap:8px}
-#sens tr:last-child td{border-bottom:0}
-#sens th.l,#sens td.l{text-align:left}
-.muted{color:var(--muted)}
-.sbar{position:relative;width:220px;height:20px}
-.sbar span{position:absolute}
-.sbar .zero{left:50%;top:-2px;width:1px;height:24px;background:var(--axis)}
-.sbar .seg{height:8px;border-radius:2px}
-.sbar .btick{width:2px;height:12px;margin-left:-1px;background:var(--ink);border-radius:1px}
-.skey{display:inline-block;width:2px;height:12px;background:var(--ink);vertical-align:-2px;margin-right:2px}
+#refresh-msg,#missing{font-family:var(--body);font-size:13px}
 </style>
 </head>
 <body>
@@ -124,8 +111,8 @@ footer p{margin:0}
   <header>
     <div class="eyebrow">Weekly closes · from Oct 2024 · USD</div>
     <h1>Crypto Stocks vs Bitcoin</h1>
-    <p class="lede">Fourteen listed crypto stocks measured against Bitcoin over two years, in two categories: companies that run a crypto business, and treasury companies that mainly hold Bitcoin. Most listed during the period, so their lines start at their first trading week. <a class="mlink" href="#method">How the index works</a></p>
-    <div class="refresh"><span id="asof">Prices as of 16 Oct 2026</span><button type="button" id="refresh">Refresh prices</button><span id="refresh-msg" aria-live="polite"></span></div>
+    <p class="lede">Fifteen listed crypto stocks measured against Bitcoin over two years, in two categories: companies that run a crypto business, and treasury companies that mainly hold crypto (Bitcoin, Ether or Zcash). Most listed during the period, so their lines start at their first trading week. <a class="mlink" href="#method">How the index works</a></p>
+    <div class="refresh"><span id="asof">Prices as of 16 Oct 2026</span><button type="button" id="refresh">Refresh prices</button><span id="refresh-msg" aria-live="polite"></span><span id="missing"></span></div>
   </header>
 
   <section>
@@ -143,16 +130,6 @@ footer p{margin:0}
     </div>
     <div class="legend"><span><span class="sw" style="background:var(--ink2)"></span>Weekly index</span><span><span class="dash"></span>13-week average</span></div>
     <div class="grid" id="groups"></div>
-  </section>
-
-  <section id="sensitivity">
-    <div class="sechead">
-      <h2>Bitcoin sensitivity</h2>
-      <p class="sub">How each stock moved in four-week periods when Bitcoin rose and when it fell, since its first week on the page. The upper bar shows the stock's average move when Bitcoin rose, the lower, lighter bar when Bitcoin fell. The black ticks mark Bitcoin's own average move in the same periods, so a bar reaching past its tick means the stock moved more than Bitcoin, and a bar pointing the other way means it moved against Bitcoin. This describes the past and is not a forecast.</p>
-    </div>
-    <div class="legend"><span><span class="skey"></span>Bitcoin's average move</span><span id="sens-scale"></span><span>* fewer than 40 periods: less reliable</span></div>
-    <div class="tscroll"><table id="sens"></table></div>
-    <p class="sub"><b>Follows Bitcoin</b> is the correlation of four-week moves: closely from 0.6, moderately from 0.4, loosely below. <b>Sensitivity</b> is the typical move per 1% Bitcoin move: 1.5× means about 15% when Bitcoin moves 10%. Four-week periods overlap week by week, so neighbouring periods share most of their data.</p>
   </section>
 
   <section>
@@ -184,7 +161,7 @@ footer p{margin:0}
 Bitcoin $80,000 → $96,000   (+20%)
 Ratio   1.10 ÷ 1.20 = 0.917   → the stock lost 8.3% against Bitcoin</div></li>
       <li><b>Start at 100</b><p>Each stock's ratio is rebased to 100 at its first week on the page, so a reading of 80 means 20% behind Bitcoin since then and 130 means 30% ahead. The per-stock charts show the same comparison as two lines: the price change of the stock and of Bitcoin since the stock's first week. Their headline number is the gap: a stock at −24% next to Bitcoin at −22% shows −1.9%, meaning about 2% behind Bitcoin.</p></li>
-      <li><b>Combine a category with equal weight</b><p>Each week the category index moves by the average weekly change in its members' ratios. Every stock counts the same, so the smallest company moves the index as much as the largest. The crypto-companies index starts at 100 on 11 Oct 2024 with the four stocks listed then; the treasury index starts with Strategy alone.</p>
+      <li><b>Combine a category with equal weight</b><p>Each week the category index moves by the average weekly change in its members' ratios. Every stock counts the same, so the smallest company moves the index as much as the largest. Both indexes start at 100 on 11 Oct 2024 with the stocks listed then: Coinbase, Robinhood and Bakkt for crypto companies, Strategy and Metaplanet for treasury companies.</p>
         <div class="calc">Week change: stock A +4%, stock B −2%   → index moves (4 − 2) ÷ 2 = +1%</div></li>
       <li><b>Let new listings join without a jump</b><p>A stock that lists later enters the average from its second week on the page. Because only weekly changes are averaged, its arrival does not shift the index level.</p></li>
       <li><b>Measure the velocity and read the trend</b><p>Velocity is how fast a stock is currently pulling away from Bitcoin or falling behind it, in percent per week. It is the slope of a straight line fitted through the last 13 weekly values of the stock-to-Bitcoin ratio, so a single unusual week moves it less than comparing just the first and last week. The trend label follows from it: <b>gaining</b> above +0.5% per week, <b>losing ground</b> below −0.5% per week, and <b>mixed</b> in between. On the two category charts, the dashed line is the 13-week average of the index, shown for orientation. All of this describes the last quarter, not the future.</p>
@@ -198,8 +175,8 @@ Ratio   1.10 ÷ 1.20 = 0.917   → the stock lost 8.3% against Bitcoin</div></li
   </details>
 
   <footer>
-    <p>Stocks are weekly closes (Friday, or the last session of the week) from Yahoo Finance, with Stooq as a fallback. Bitcoin is the weekly XBT/USD close on Kraken, where the week runs Thursday to Wednesday, so it sits one to two days off the stock closes. <span id="asof-foot">The last stock point is the week to 16 Oct 2026; the last Bitcoin point is a partial week as quoted on 17 Oct 2026.</span> "Refresh prices" loads the newest data at most once a day; the current week is shown as it stands at the last trade.</p>
-    <p>Start dates: Coincheck and Twenty One Capital are shown from the week their mergers closed (December 2024 and December 2025); the earlier history of the shell companies they merged into is left out. BitGo starts with its first full trading week, which misses its first two sessions. Exodus traded over the counter before moving to NYSE American in December 2024. Galaxy Digital is shown from its Nasdaq listing in May 2025; besides trading and asset management it also develops data centres.</p>
+    <p>Stocks are weekly closes (Friday, or the last session of the week) from Yahoo Finance, with Stooq as a fallback. Bitcoin is the weekly XBT/USD close on Kraken, where the week runs Thursday to Wednesday, so it sits one to two days off the stock closes. <span id="asof-foot">The last stock point is the week to 16 Oct 2026; the last Bitcoin point is a partial week as quoted on 17 Oct 2026.</span> The page loads the newest prices once a day; the current week is shown as it stands at the last trade. Metaplanet trades in Tokyo in yen and is converted to US dollars at each week's USD/JPY close; its 10-for-1 stock split in April 2025 is adjusted.</p>
+    <p>Start dates: Twenty One Capital is shown from the week its merger closed (December 2025), BitMine Immersion from the week it announced its Ether treasury (30 June 2025) and Cypherpunk Technologies, formerly Leap Therapeutics, from the week it announced its Zcash treasury (12 November 2025); the earlier history of these companies is left out. BitGo starts with its first full trading week, which misses its first two sessions. Galaxy Digital is shown from its Nasdaq listing in May 2025; besides trading and asset management it also develops data centres.</p>
   </footer>
 
   <footer class="legal" id="legal">
