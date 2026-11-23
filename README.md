@@ -8,9 +8,8 @@ The page shows:
 
 - Bitcoin as the reference chart
 - an equal-weight index per category, priced in Bitcoin, with a 13-week average
-- a scoreboard with velocity (slope of the stock-to-Bitcoin ratio over 13 weeks) and a trend label
 - Bitcoin sensitivity: correlation, beta and average moves when Bitcoin rose or fell
-- a small chart per stock (stock vs Bitcoin, or price in USD)
+- a small chart per stock (stock vs Bitcoin, or price in USD), with its velocity (slope of the stock-to-Bitcoin ratio over 13 weeks) and trend label
 - a weekly data table and an explanation of the method
 
 It describes past prices only and is not investment advice.

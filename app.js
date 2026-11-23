@@ -246,19 +246,6 @@ Object.values(GROUPS).forEach(g=>panel(document.getElementById("groups"),{name:g
   sub:`Equal weight · ${g.atStart} ${g.atStart===1?"stock":"stocks"} in Oct ’24, ${g.members.length} today`,color:g.color,pts:g.idx,rel:true,H:250,nt:4,
   fmt:v=>v.toFixed(1),tick:String,stats:relStatsHtml(g.rs,g.idx[0]),aria:g.name+" priced in Bitcoin, index starting at 100, with 13-week average"},fixed));
 
-/* ---- scoreboard ---- */
-(function(){
-  const since=s=>s.full?"Oct ’24":xLab(s.first.t);
-  let h="<thead><tr><th>Stock</th><th>On page since</th><th>Price</th><th>Price change</th><th>vs Bitcoin, since start</th><th>Velocity vs Bitcoin</th><th>Trend vs Bitcoin</th></tr></thead><tbody>";
-  Object.values(GROUPS).forEach(g=>{
-    h+=`<tr class="grp"><td colspan="7"><span><span class="sw" style="background:${g.color}"></span>${g.name} · ${g.members.length}</span></td></tr>`;
-    h+=`<tr class="idx"><td>Category index</td><td>Oct ’24</td><td class="na">—</td><td class="na">—</td><td>${fmtPct(g.rs.since)}</td><td>${fmtVel(g.rs.vel)}</td><td><span class="pill">${g.rs.glyph} ${g.rs.trend}</span></td></tr>`;
-    g.members.slice().sort((a,b)=>b.rs.vel-a.rs.vel).forEach(s=>{
-      h+=`<tr><td>${s.name}<small>${s.id}</small></td><td>${since(s)}</td><td>${fmtP(s.last.v,2)}</td><td>${fmtPct(s.usdChg)}</td><td>${fmtPct(s.rs.since)}</td><td>${fmtVel(s.rs.vel)}</td><td><span class="pill">${s.rs.glyph} ${s.rs.trend}</span></td></tr>`;});
-  });
-  document.getElementById("score").innerHTML=h+"</tbody>";
-})();
-
 /* ---- Bitcoin sensitivity: how each stock moved in rolling 4-week periods when Bitcoin rose or fell ---- */
 (function(){
   const K=4, mean=a=>a.length?a.reduce((x,y)=>x+y,0)/a.length:null;
