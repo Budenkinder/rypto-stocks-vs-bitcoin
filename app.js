@@ -246,34 +246,6 @@ Object.values(GROUPS).forEach(g=>panel(document.getElementById("groups"),{name:g
   sub:`Equal weight · ${g.atStart} ${g.atStart===1?"stock":"stocks"} in Oct ’24, ${g.members.length} today`,color:g.color,pts:g.idx,rel:true,H:250,nt:4,
   fmt:v=>v.toFixed(1),tick:String,stats:relStatsHtml(g.rs,g.idx[0]),aria:g.name+" priced in Bitcoin, index starting at 100, with 13-week average"},fixed));
 
-/* ---- Bitcoin sensitivity: how each stock moved in rolling 4-week periods when Bitcoin rose or fell ---- */
-(function(){
-  const K=4, mean=a=>a.length?a.reduce((x,y)=>x+y,0)/a.length:null;
-  const rows=STOCKS.map(s=>{
-    const rs=[],rb=[];
-    for(let i=K;i<s.pts.length;i++){rs.push((s.pts[i].v/s.pts[i-K].v-1)*100);rb.push((nearest(BTC,s.pts[i].t).v/nearest(BTC,s.pts[i-K].t).v-1)*100);}
-    const ms=mean(rs),mb=mean(rb);let cov=0,vs=0,vb=0;rs.forEach((v,i)=>{cov+=(v-ms)*(rb[i]-mb);vs+=(v-ms)**2;vb+=(rb[i]-mb)**2;});
-    const up=rs.filter((v,i)=>rb[i]>0),dn=rs.filter((v,i)=>rb[i]<0),bup=rb.filter(v=>v>0),bdn=rb.filter(v=>v<0);
-    return {s,n:rs.length,corr:cov/Math.sqrt(vs*vb),beta:cov/vb,up:mean(up),dn:mean(dn),bup:mean(bup),bdn:mean(bdn)};});
-  const lim=Math.ceil(Math.max(...rows.flatMap(r=>[Math.abs(r.up),Math.abs(r.dn),Math.abs(r.bup),Math.abs(r.bdn)]))/10)*10;
-  const pos=v=>50+v/lim*50;
-  const follow=c=>c>=0.6?"closely":c>=0.4?"moderately":"loosely";
-  const sg=v=>(v>=0?"+":"−")+Math.abs(v).toFixed(1)+"%";
-  const seg=(v,top,col,op)=>`<span class="seg" style="top:${top}px;left:${Math.min(50,pos(v))}%;width:${Math.abs(pos(v)-50)}%;background:${col};opacity:${op}"></span>`;
-  const bar=r=>`<div class="sbar" role="img" aria-label="${r.s.name}: ${sg(r.up)} on average when Bitcoin rose (Bitcoin ${sg(r.bup)}), ${sg(r.dn)} when Bitcoin fell (Bitcoin ${sg(r.bdn)})">
-    <span class="zero"></span>${seg(r.up,1,r.s.color,1)}${seg(r.dn,12,r.s.color,.55)}
-    <span class="btick" style="top:-1px;left:${pos(r.bup)}%"></span><span class="btick" style="top:10px;left:${pos(r.bdn)}%"></span></div>`;
-  let h=`<thead><tr><th>Stock</th><th>Follows Bitcoin</th><th>Sensitivity</th><th class="l">Avg. move: Bitcoin rose / fell</th><th>When Bitcoin rose</th><th>When Bitcoin fell</th><th>Periods</th></tr></thead><tbody>`;
-  Object.values(GROUPS).forEach(g=>{
-    h+=`<tr class="grp"><td colspan="7"><span><span class="sw" style="background:${g.color}"></span>${g.name} · ${g.members.length}</span></td></tr>`;
-    rows.filter(r=>r.s.g===Object.keys(GROUPS).find(k=>GROUPS[k]===g)).sort((a,b)=>b.corr-a.corr).forEach(r=>{
-      h+=`<tr><td>${r.s.name}<small>${r.s.id}</small></td><td>${follow(r.corr)} <span class="muted">${r.corr.toFixed(2)}</span></td><td>${r.beta.toFixed(1)}×</td><td class="l">${bar(r)}</td>`+
-         `<td>${sg(r.up)} <span class="muted">vs ${sg(r.bup)}</span></td><td>${sg(r.dn)} <span class="muted">vs ${sg(r.bdn)}</span></td><td${r.n<40?' class="na" title="short history"':""}>${r.n}${r.n<40?" *":""}</td></tr>`;});
-  });
-  document.getElementById("sens").innerHTML=h+"</tbody>";
-  document.getElementById("sens-scale").textContent="Bar scale: −"+lim+"% to +"+lim+"%";
-})();
-
 /* ---- small multiples with a measure toggle ---- */
 let mode="rel";
 function renderMulti(){
