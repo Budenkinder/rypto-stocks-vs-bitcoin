@@ -108,6 +108,20 @@ const BTC0=`1728518400,67589.9
 const DAY=864e5, MN=["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
 const X0=Date.UTC(2024,9,8);
 const GROUPS={co:{name:"Crypto companies",color:"var(--s2)"},tr:{name:"Treasury companies",color:"var(--s3)"}};
+/* quarterly results while the stock is on the page: [release date, period, 1 = net profit, -1 = net loss (GAAP/IFRS, as stated in the company's release)] */
+const EARN={
+  COIN:[["2024-10-30","Q3 2024",1],["2025-02-13","Q4 2024",1],["2025-05-08","Q1 2025",1],["2025-07-31","Q2 2025",1],["2025-10-30","Q3 2025",1],["2026-02-12","Q4 2025",-1],["2026-05-07","Q1 2026",-1],["2026-07-30","Q2 2026",-1],["2026-10-29","Q3 2026",1]],
+  HOOD:[["2024-10-30","Q3 2024",1],["2025-02-12","Q4 2024",1],["2025-04-30","Q1 2025",1],["2025-07-30","Q2 2025",1],["2025-11-05","Q3 2025",1],["2026-02-10","Q4 2025",1],["2026-04-28","Q1 2026",1],["2026-07-29","Q2 2026",1],["2026-10-27","Q3 2026",1]],
+  CRCL:[["2025-08-12","Q2 2025",-1],["2025-11-12","Q3 2025",1],["2026-02-25","Q4 2025",1],["2026-05-11","Q1 2026",1],["2026-08-05","Q2 2026",1],["2026-11-04","Q3 2026",1]],
+  GLXY:[["2025-08-05","Q2 2025",1],["2025-10-21","Q3 2025",1],["2026-02-03","Q4 2025",-1],["2026-04-28","Q1 2026",-1],["2026-08-05","Q2 2026",-1],["2026-10-27","Q3 2026",1]],
+  BLSH:[["2025-09-17","Q2 2025",1],["2025-11-19","Q3 2025",1],["2026-02-05","Q4 2025",-1],["2026-05-14","Q1 2026",-1],["2026-08-13","Q2 2026",-1],["2026-11-18","Q3 2026",1]],
+  ETOR:[["2025-06-10","Q1 2025",1],["2025-08-12","Q2 2025",1],["2025-11-10","Q3 2025",1],["2026-02-17","Q4 2025",1],["2026-05-12","Q1 2026",1],["2026-08-11","Q2 2026",1],["2026-11-10","Q3 2026",1]],
+  FIGR:[["2025-11-13","Q3 2025",1],["2026-02-26","Q4 2025",1],["2026-05-11","Q1 2026",1],["2026-08-13","Q2 2026",1],["2026-11-12","Q3 2026",1]],
+  GEMI:[["2025-11-10","Q3 2025",-1],["2026-03-19","Q4 2025",-1],["2026-05-14","Q1 2026",-1],["2026-08-13","Q2 2026",-1],["2026-11-12","Q3 2026",-1]],
+  BTGO:[["2026-03-26","Q4 2025",-1],["2026-05-13","Q1 2026",-1],["2026-08-12","Q2 2026",-1],["2026-11-09","Q3 2026",1]],
+  MSTR:[["2024-10-30","Q3 2024",-1],["2025-02-05","Q4 2024",-1],["2025-05-01","Q1 2025",-1],["2025-07-31","Q2 2025",1],["2025-10-30","Q3 2025",1],["2026-02-05","Q4 2025",-1],["2026-05-05","Q1 2026",-1],["2026-07-30","Q2 2026",-1],["2026-10-29","Q3 2026",1]],
+  XXI:[["2025-12-19","Q3 2025",-1],["2026-03-31","FY 2025",-1],["2026-05-13","Q1 2026",-1],["2026-08-11","Q2 2026",-1],["2026-11-13","Q3 2026",1]]
+};
 /* id, name, ticker shown, exchange, category, first week on the page (Monday) */
 const META=[
   ["COIN","Coinbase","COIN","Nasdaq","co","2024-10-07"],["HOOD","Robinhood","HOOD","Nasdaq","co","2024-10-07"],["CRCL","Circle","CRCL","NYSE","co","2025-06-02"],
@@ -122,7 +136,9 @@ function boot(DATA,BTC_RAW,END){
 const STOCK_END=Date.parse(END.stock), X1=Math.max(Date.parse(END.btc),STOCK_END+DAY);
 ["btc","groups"].forEach(id=>{document.getElementById(id).innerHTML="";});
 const STOCKS=META.filter(([id])=>DATA[id]).map(([key,name,id,ex,g])=>{const [start,vals]=DATA[key], t0=Date.parse(start);
-  return {id,name,ex,g,color:GROUPS[g].color,pts:vals.map((v,i)=>({t:Math.min(t0+i*7*DAY+4*DAY,STOCK_END),v}))};});
+  const pts=vals.map((v,i)=>({t:Math.min(t0+i*7*DAY+4*DAY,STOCK_END),v}));
+  const earn=(EARN[key]||[]).map(([d,per,sg])=>{const td=Date.parse(d),i=Math.floor((td-t0)/(7*DAY));return i>=0&&i<pts.length?{i,td,per,pos:sg>0}:null;}).filter(Boolean);
+  return {id,name,ex,g,color:GROUPS[g].color,pts,earn};});
 const BTC=BTC_RAW.trim().split("\n").map(l=>{const [t,c]=l.split(",");return {t:Math.min((+t+604800)*1000-DAY,X1),v:+c};});
 
 const fmtP=(v,dec)=>"$"+v.toLocaleString("en-US",{minimumFractionDigits:dec,maximumFractionDigits:dec});
@@ -193,11 +209,12 @@ function panel(parent,o,reg){
   const vals=pts.flatMap(q=>o.rel&&q.m!=null?[q.v,q.m]:[q.v]); if(o.rel||o.cmp)vals.push(100); if(o.cmp)o.cmp.forEach(q=>vals.push(q.v));
   const cmpAt=q=>o.cmp?o.cmp[pts.indexOf(q)]:null;
   const pct=v=>(v>=0?"+":"−")+Math.abs(v).toFixed(1)+"%";
-  const read=q=>{const c=q&&cmpAt(q);
+  const earnAt=q=>{if(!o.earn||!q)return "";const e=o.earn.find(m=>pts[m.i]===q);return e?"\n"+e.per+" results "+fmtD(e.td).replace(/ \d{4}$/,"")+": "+(e.pos?"net profit":"net loss"):"";};
+  const read=(q,hov)=>{const c=q&&cmpAt(q);
     if(o.cmp){priceEl.textContent=q&&c?pct((q.v/c.v-1)*100):"—";
-      whenEl.textContent=q&&c?"vs Bitcoin · "+(q===last?"latest ":"week to ")+fmtD(q.t)+"\n"+o.name+" "+pct(q.v-100)+" · Bitcoin "+pct(c.v-100):"not yet listed";return;}
+      whenEl.textContent=q&&c?"vs Bitcoin · "+(q===last?"latest ":"week to ")+fmtD(q.t)+"\n"+o.name+" "+pct(q.v-100)+" · Bitcoin "+pct(c.v-100)+(hov?earnAt(q):""):"not yet listed";return;}
     priceEl.textContent=q?o.fmt(q.v):"—";
-    whenEl.textContent=q?(q===last?"latest · ":"week to ")+fmtD(q.t)+(o.rel&&q.m!=null?"\n13-week avg "+q.m.toFixed(1):"")+(c?"\nBitcoin "+c.v.toFixed(1)+" · gap "+fmtPct((q.v/c.v-1)*100).replace(/^[▲▼] /,""):""):"not yet listed";};
+    whenEl.textContent=q?(q===last?"latest · ":"week to ")+fmtD(q.t)+(o.rel&&q.m!=null?"\n13-week avg "+q.m.toFixed(1):"")+(c?"\nBitcoin "+c.v.toFixed(1)+" · gap "+fmtPct((q.v/c.v-1)*100).replace(/^[▲▼] /,""):"")+(hov?earnAt(q):""):"not yet listed";};
   const cpath=()=>o.cmp.map((q,i)=>(i?"L":"M")+x(q.t).toFixed(1)+" "+y(q.v).toFixed(1)).join("");
   const path=f=>{let d="",pen=false;pts.forEach(q=>{const v=f(q);if(v==null){pen=false;return;}d+=(pen?"L":"M")+x(q.t).toFixed(1)+" "+y(v).toFixed(1);pen=true;});return d;};
   function draw(){
@@ -215,6 +232,8 @@ function panel(parent,o,reg){
     el("path",{d:path(q=>q.v),fill:"none",stroke:o.color,"stroke-width":2,"stroke-linejoin":"round","stroke-linecap":"round"},svg);
     if(o.rel)el("path",{d:path(q=>q.m),fill:"none",stroke:"var(--ink)","stroke-width":1.5,"stroke-dasharray":"5 4","stroke-linejoin":"round"},svg);
     el("circle",{cx:x(last.t),cy:y(last.v),r:4,fill:o.color,stroke:"var(--surface)","stroke-width":2},svg);
+    if(o.earn)o.earn.forEach(m=>{const q=pts[m.i],cx=x(q.t),cy=y(q.v),d=m.pos?-9:9,s=5;
+      el("path",{class:"earn "+(m.pos?"pos":"neg"),d:m.pos?`M${cx} ${cy+d-s}L${cx+s} ${cy+d+s*0.8}L${cx-s} ${cy+d+s*0.8}Z`:`M${cx} ${cy+d+s}L${cx+s} ${cy+d-s*0.8}L${cx-s} ${cy+d-s*0.8}Z`},svg);});
     hl=el("line",{class:"ch",y1:M.t,y2:H-M.b,visibility:"hidden"},svg);
     hc=o.cmp?el("circle",{r:4.5,fill:"var(--s1)",stroke:"var(--surface)","stroke-width":2,visibility:"hidden"},svg):null;
     hd=el("circle",{r:4.5,fill:o.color,stroke:"var(--surface)","stroke-width":2,visibility:"hidden"},svg);
@@ -232,7 +251,7 @@ function panel(parent,o,reg){
     const q=nearest(pts,t);
     hl.setAttribute("x1",x(q.t));hl.setAttribute("x2",x(q.t));hl.setAttribute("visibility","visible");
     hd.setAttribute("cx",x(q.t));hd.setAttribute("cy",y(q.v));hd.setAttribute("visibility","visible");
-    const c=cmpAt(q);if(hc&&c){hc.setAttribute("cx",x(c.t));hc.setAttribute("cy",y(c.v));hc.setAttribute("visibility","visible");}read(q);
+    const c=cmpAt(q);if(hc&&c){hc.setAttribute("cx",x(c.t));hc.setAttribute("cy",y(c.v));hc.setAttribute("visibility","visible");}read(q,true);
   }});
 }
 const relStatsHtml=(rs,first)=>`<span>vs Bitcoin since ${xLab(first.t)} <b>${fmtPct(rs.since)}</b></span><span>Velocity <b>${fmtVel(rs.vel)}</b></span><span>Trend <b>${rs.glyph} ${rs.trend}</b></span>`;
@@ -255,8 +274,8 @@ function renderMulti(){
     const g=GROUPS[k], host=document.getElementById("sm-"+k); host.innerHTML="";
     document.getElementById("h-"+k).textContent=g.name+" · "+g.members.length;
     g.members.forEach(s=>panel(host,mode==="rel"
-      ?{name:s.name,sub:s.id+" vs BTC",color:s.color,pts:s.stIdx,cmp:s.btIdx,H:150,nt:3,cls:"small",fmt:v=>v.toFixed(1),tick:String,stats:`<span>Trend <b>${s.rs.glyph} ${s.rs.trend}</b></span>`,badge:velBadge(s.rs),aria:s.name+" and Bitcoin, both started at 100 in the stock's first week on the page"}
-      :{name:s.name,sub:s.id+" · "+s.ex,color:s.color,pts:s.pts,H:150,nt:3,cls:"small",fmt:v=>fmtP(v,2),tick:tickUSD,stats:usdStatsHtml(s.pts,2),aria:s.name+" weekly closing price in US dollars"},multi));
+      ?{name:s.name,sub:s.id+" vs BTC",color:s.color,pts:s.stIdx,cmp:s.btIdx,H:150,nt:3,cls:"small",earn:s.earn,fmt:v=>v.toFixed(1),tick:String,stats:`<span>Trend <b>${s.rs.glyph} ${s.rs.trend}</b></span>`,badge:velBadge(s.rs),aria:s.name+" and Bitcoin, both started at 100 in the stock's first week on the page"}
+      :{name:s.name,sub:s.id+" · "+s.ex,color:s.color,pts:s.pts,H:150,nt:3,cls:"small",earn:s.earn,fmt:v=>fmtP(v,2),tick:tickUSD,stats:usdStatsHtml(s.pts,2),aria:s.name+" weekly closing price in US dollars"},multi));
   });
   document.getElementById("modehint").textContent=mode==="rel"
     ?"Price change of the stock and of Bitcoin since the stock's first week on the page. The big number is the result: how far the stock is ahead of (+) or behind (−) Bitcoin."

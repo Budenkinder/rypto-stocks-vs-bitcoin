@@ -9,6 +9,7 @@ The page shows:
 - Bitcoin as the reference chart
 - an equal-weight index per category, priced in Bitcoin, with a 13-week average
 - a small chart per stock (stock vs Bitcoin, or price in USD), with its velocity (slope of the stock-to-Bitcoin ratio over 13 weeks) and trend label
+- quarterly results markers on the stock charts: ▲ net profit, ▼ net loss, from each company's results release (dates and signs are in `EARN` in `app.js`; add a row after each new report)
 - a weekly data table and an explanation of the method
 
 It describes past prices only and is not investment advice.
